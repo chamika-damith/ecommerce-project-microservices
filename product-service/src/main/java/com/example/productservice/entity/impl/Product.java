@@ -15,7 +15,6 @@ import lombok.NoArgsConstructor;
 @Entity
 public class Product implements SuperEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String name;
