@@ -26,10 +26,10 @@ public class Mapping {
     }
 
     public List<Product> toProductEntityList(List<ProductDTO> productDTOs){
-        return modelMapper.map(productDTOs,new TypeToken<Product>() {}.getType());
+        return modelMapper.map(productDTOs,new TypeToken<List<Product>>() {}.getType());
     }
 
     public List<ProductDTO> toProductDTOList(List<Product> products){
-        return modelMapper.map(products,new TypeToken<ProductDTO>() {}.getType());
+        return modelMapper.map(products, new TypeToken<List<ProductDTO>>() {}.getType());
     }
 }
