@@ -21,7 +21,7 @@ public class OrderController {
         this.orderService = orderService;
     }
 
-    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/save",consumes = MediaType.APPLICATION_JSON_VALUE)
     public CustomStatus saveOrder(@RequestBody OrderDTO orderDTO){
         if (orderDTO == null){
             return new ErrorStatus(204, "Error saving order");
