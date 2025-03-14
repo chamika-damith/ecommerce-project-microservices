@@ -6,8 +6,11 @@ import com.example.orderservice.dto.impl.OrderDTO;
 import com.example.orderservice.entity.impl.Order;
 import com.example.orderservice.service.OrderService;
 import com.example.orderservice.util.Mapping;
+import com.example.productservice.dto.impl.ProductDTO;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
+
 
 import java.util.List;
 import java.util.Optional;
@@ -16,18 +19,50 @@ import java.util.Optional;
 @Transactional
 public class OrderServiceImpl implements OrderService {
 
+    private final WebClient webClient;
+
     private final OrderDao orderDao;
     private final Mapping orderMapper;
 
-    public OrderServiceImpl(OrderDao orderDao, Mapping productMapper) {
+    public OrderServiceImpl(WebClient webClient, OrderDao orderDao, Mapping productMapper) {
+        this.webClient = webClient;
         this.orderDao = orderDao;
         this.orderMapper = productMapper;
     }
 
     @Override
     public void save(OrderDTO dto) {
-        Order orderEntity = orderMapper.toOrderEntity(dto);
-        orderDao.save(orderEntity);
+
+        Integer productId = dto.getItemId();
+
+
+        try {
+            ProductDTO productDTO = webClient.get()
+                    .uri("/product-service/{itemId}", productId)
+                    .retrieve()
+                    .bodyToMono(ProductDTO.class)
+                    .block();
+
+            if (productDTO != null && productDTO.getStock() >= dto.getAmount()) {
+                int updatedStock = productDTO.getStock() - dto.getAmount();
+                productDTO.setStock(updatedStock);
+
+                webClient.put()
+                        .uri("/product-service/{itemId}", productId)
+                        .bodyValue(productDTO)
+                        .retrieve()
+                        .bodyToMono(Void.class)
+                        .block();
+
+                Order orderEntity = orderMapper.toOrderEntity(dto);
+                orderDao.save(orderEntity);
+            }
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+
     }
 
     @Override
